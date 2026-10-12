@@ -12,7 +12,7 @@
   },
   "engines": {
     "node": ">=4.5.0",
-    "homebridge": ">=0.2.0"
+    "homebridge": "^1.6.0 || ^2.0.0"
   },
   "dependencies": {
     "binrpc": "latest",

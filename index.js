@@ -42,6 +42,15 @@ function HomeMaticPlatform (log, config, api) {
   this.cache = new HomeMaticCacheManager(log)
   if (api) {
     this.api = api
+    // HAP-NodeJS v1 moved these enums from Characteristic to api.hap.
+    // Keep the existing custom characteristic definitions working on both
+    // HAP v0 and v1 by restoring the legacy aliases before services are built.
+    if (api.hap && api.hap.Characteristic) {
+      const hapCharacteristic = api.hap.Characteristic
+      hapCharacteristic.Formats = hapCharacteristic.Formats || api.hap.Formats
+      hapCharacteristic.Units = hapCharacteristic.Units || api.hap.Units
+      hapCharacteristic.Perms = hapCharacteristic.Perms || api.hap.Perms
+    }
     if (api.version < 2.1) {
       throw new Error('Unexpected API version.')
     }
