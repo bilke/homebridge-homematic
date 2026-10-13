@@ -174,10 +174,13 @@ HomeMaticHomeKitThermostatService.prototype.datapointEvent = function (dp, newVa
   }
 
   if (dp === '1.HUMIDITY') {
-    self.addLogEntry({
-      currentTemp: parseFloat(newValue)
-    })
-    self.currentHumidityCharacteristic.updateValue(parseFloat(newValue), null)
+    const humidity = parseFloat(newValue)
+    if (isFinite(humidity) && humidity >= 0 && humidity <= 100) {
+      self.addLogEntry({
+        humidity: humidity
+      })
+      self.currentHumidityCharacteristic.updateValue(humidity, null)
+    }
   }
 
   if (dp === '2.SETPOINT') {

@@ -9,6 +9,11 @@ function HomeMaticHomeKitIPThermostatService (log, platform, id, name, type, adr
 
 util.inherits(HomeMaticHomeKitIPThermostatService, HomeKitGenericService)
 
+function parseHumidity (value) {
+  const humidity = parseFloat(value)
+  return isFinite(humidity) && humidity >= 0 && humidity <= 100 ? humidity : null
+}
+
 HomeMaticHomeKitIPThermostatService.prototype.createDeviceService = function (Service, Characteristic) {
   var that = this
   this.usecache = false
@@ -74,7 +79,14 @@ HomeMaticHomeKitIPThermostatService.prototype.createDeviceService = function (Se
   this.cchum = thermo.getCharacteristic(Characteristic.CurrentRelativeHumidity)
     .on('get', function (callback) {
       this.remoteGetValue('HUMIDITY', function (value) {
-        if (callback) callback(null, value)
+        const humidity = parseHumidity(value)
+        if (callback) {
+          if (humidity === null) {
+            callback(new Error('Invalid humidity value'))
+          } else {
+            callback(null, humidity)
+          }
+        }
       })
     }.bind(this))
 
@@ -113,8 +125,11 @@ HomeMaticHomeKitIPThermostatService.prototype.createDeviceService = function (Se
 HomeMaticHomeKitIPThermostatService.prototype.queryData = function () {
   var that = this
   this.query('HUMIDITY', function (value) {
-    that.cchum.updateValue(parseFloat(value), null)
-    that.addLogEntry({ humidity: parseFloat(value) })
+    const humidity = parseHumidity(value)
+    if (humidity !== null) {
+      that.cchum.updateValue(humidity, null)
+      that.addLogEntry({ humidity: humidity })
+    }
   })
 
   this.query('ACTUAL_TEMPERATURE', function (value) {
@@ -137,8 +152,11 @@ HomeMaticHomeKitIPThermostatService.prototype.datapointEvent = function (dp, new
   }
 
   if (this.isDataPointEvent(dp, 'HUMIDITY')) {
-    this.cchum.updateValue(parseFloat(newValue), null)
-    this.addLogEntry({ humidity: parseFloat(newValue) })
+    const humidity = parseHumidity(newValue)
+    if (humidity !== null) {
+      this.cchum.updateValue(humidity, null)
+      this.addLogEntry({ humidity: humidity })
+    }
   }
 
   if (this.isDataPointEvent(dp, 'SET_POINT_TEMPERATURE')) {
