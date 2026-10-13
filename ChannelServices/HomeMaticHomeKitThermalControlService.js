@@ -91,7 +91,10 @@ HomeMaticHomeKitThermalControlService.prototype.createDeviceService = function (
     this.currentHumidityCharacteristic = this.thermostat.getCharacteristic(Characteristic.CurrentRelativeHumidity)
       .on('get', function (callback) {
         that.query('ACTUAL_HUMIDITY', function (value) {
-          that.currentHumidity = parseFloat(value)
+          var humidity = parseFloat(value)
+          if (isFinite(humidity) && humidity >= 0 && humidity <= 100) {
+            that.currentHumidity = humidity
+          }
           if (callback) callback(null, that.currentHumidity)
         })
       })
@@ -100,6 +103,7 @@ HomeMaticHomeKitThermalControlService.prototype.createDeviceService = function (
   }
 
   this.targetTemperatureCharacteristic = this.thermostat.getCharacteristic(Characteristic.TargetTemperature)
+    .setProps({ minValue: 10, maxValue: 30.5, minStep: 0.1 })
     .on('get', function (callback) {
       this.query('SET_TEMPERATURE', function (value) {
         if (value === 4.5) {
@@ -110,8 +114,10 @@ HomeMaticHomeKitThermalControlService.prototype.createDeviceService = function (
           that.getCurrentStateCharacteristic('MODE').setValue(1, null)
         }
 
-        if (value < 10) {
+        if (!isFinite(value) || value < 10) {
           value = 10
+        } else if (value > 30.5) {
+          value = 30.5
         }
         if (callback) callback(null, parseFloat(value))
       })
@@ -204,8 +210,11 @@ HomeMaticHomeKitThermalControlService.prototype.processChange = function (dp, ne
 
   if (this.isDataPointEvent(dp, 'ACTUAL_HUMIDITY')) {
     this.log.debug('[TCS] set currentHumidity to %s', newValue)
-    this.currentHumidity = parseFloat(newValue)
-    if (this.currentHumidityCharacteristic !== undefined) {
+    var humidity = parseFloat(newValue)
+    if (isFinite(humidity) && humidity >= 0 && humidity <= 100) {
+      this.currentHumidity = humidity
+    }
+    if (this.currentHumidityCharacteristic !== undefined && isFinite(humidity) && humidity >= 0 && humidity <= 100) {
       this.currentHumidityCharacteristic.updateValue(this.currentHumidity, null)
     }
   }
@@ -218,7 +227,15 @@ HomeMaticHomeKitThermalControlService.prototype.processChange = function (dp, ne
       this.targetMode.updateValue(1, null)
       this.currentmode.updateValue(1, null)
     }
-    this.targetTemperatureCharacteristic.updateValue(parseFloat(newValue), null)
+    var targetTemperature = parseFloat(newValue)
+    if (targetTemperature === 4.5 || targetTemperature < 10) {
+      targetTemperature = 10
+    } else if (targetTemperature > 30.5) {
+      targetTemperature = 30.5
+    }
+    if (isFinite(targetTemperature)) {
+      this.targetTemperatureCharacteristic.updateValue(targetTemperature, null)
+    }
   }
 
   if (this.currentTemperature > -255) {
