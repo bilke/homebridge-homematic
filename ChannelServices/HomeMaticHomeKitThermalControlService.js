@@ -70,7 +70,8 @@ HomeMaticHomeKitThermalControlService.prototype.createDeviceService = function (
     perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY],
     maxValue: 1,
     minValue: 0,
-    minStep: 1
+    minStep: 1,
+    validValues: [0, 1]
   })
 
   this.setCurrentStateCharacteristic('TMODE', this.targetMode)

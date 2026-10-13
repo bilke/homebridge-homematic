@@ -27,6 +27,7 @@
     "sprintf-js": "^1.0.3"
   },
   "devDependencies": {
+    "@homebridge/hap-nodejs": "2.2.2",
     "assert": "1.5.0",
     "chalk": "latest",
     "mocha": "^7.0.1",

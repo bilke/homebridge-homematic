@@ -49,7 +49,13 @@ function HomeMaticPlatform (log, config, api) {
       const hapCharacteristic = api.hap.Characteristic
       hapCharacteristic.Formats = hapCharacteristic.Formats || api.hap.Formats
       hapCharacteristic.Units = hapCharacteristic.Units || api.hap.Units
-      hapCharacteristic.Perms = hapCharacteristic.Perms || api.hap.Perms
+      const hapPerms = hapCharacteristic.Perms || api.hap.Perms
+      // Modern HAP enums also renamed READ/WRITE. The service definitions and
+      // fakegato-history still use the old names, so retain both spellings.
+      hapCharacteristic.Perms = Object.assign({}, hapPerms, {
+        READ: hapPerms.READ || hapPerms.PAIRED_READ,
+        WRITE: hapPerms.WRITE || hapPerms.PAIRED_WRITE
+      })
     }
     if (api.version < 2.1) {
       throw new Error('Unexpected API version.')

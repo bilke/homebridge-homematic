@@ -60,7 +60,8 @@ HomeMaticHomeKitThermostatService.prototype.createDeviceService = function (Serv
     perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY],
     maxValue: 1,
     minValue: 0,
-    minStep: 1
+    minStep: 1,
+    validValues: [0, 1]
   })
 
   self.currentTempCharacteristic = thermo.getCharacteristic(Characteristic.CurrentTemperature)
